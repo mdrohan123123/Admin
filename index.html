@@ -1,132 +1,525 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Control Panel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROG Admin Panel</title>
+    <!-- Firebase Compatibility -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Fonts & Icons (for better UI) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== Global Variables ===== */
+        :root {
+            --bg-deep: #0b0d17;
+            --bg-surface: #141625;
+            --primary: #38bdf8;
+            --secondary: #818cf8;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: rgba(255, 255, 255, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --gradient-brand: linear-gradient(to right, #fff, var(--primary));
+        }
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+        }
 
-<style>
-body{
-    background:#0b0d17;
-    color:white;
-    font-family:sans-serif;
-    padding:20px;
-}
-.card{
-    background:#141625;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
-}
-input,textarea,select{
-    width:100%;
-    padding:10px;
-    margin:6px 0;
-    border-radius:8px;
-    border:none;
-}
-button{
-    padding:10px 20px;
-    background:#38bdf8;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
-}
-</style>
+        body {
+            background: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h2 {
+            font-weight: 800;
+            background: var(--gradient-brand);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px -10px var(--primary);
+        }
+
+        .card h3 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--primary);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: #1c1e2e;
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 1rem;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            outline: none;
+            transition: var(--transition);
+            font-size: 1rem;
+            margin: 6px 0;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
+
+        button {
+            padding: 1rem 2rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 1rem;
+            cursor: pointer;
+            font-weight: 800;
+            color: var(--bg-deep);
+            margin-right: 8px;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        button:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px var(--primary);
+        }
+
+        button.danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        button.danger:hover {
+            background: #dc2626;
+        }
+
+        .small-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .article-item, .ad-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin: 10px 0;
+            transition: var(--transition);
+        }
+
+        .article-item:hover, .ad-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .article-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .article-header strong {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            background: var(--primary);
+            color: var(--bg-deep);
+            padding: 0.25rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .ad-item {
+            border-left: 4px solid var(--primary);
+        }
+
+        .ad-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        /* Theme picker (from the big code) */
+        .theme-picker {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        .color-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+        .color-dot:hover {
+            transform: scale(1.2);
+            border-color: white;
+        }
+        .color-dot.active {
+            border-color: white;
+            box-shadow: 0 0 15px currentColor;
+        }
+        .custom-color-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        .custom-color-row input[type="color"] {
+            width: 60px;
+            height: 50px;
+            padding: 0;
+            border-radius: 1rem;
+            background: transparent;
+        }
+        .custom-color-row button {
+            padding: 0.5rem 1rem;
+            margin-top: 0;
+        }
+
+        /* toast */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            left: 2rem;
+            background: var(--success);
+            color: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            text-align: center;
+            transform: translateY(200%);
+            transition: var(--transition);
+            z-index: 3000;
+        }
+        @media (min-width: 768px) {
+            #toast {
+                left: auto;
+                width: auto;
+                padding: 1rem 2.5rem;
+            }
+        }
+        #toast.show {
+            transform: translateY(0);
+        }
+    </style>
 </head>
 <body>
+    <h2>🔥 ROG Admin Panel</h2>
 
-<h2>🔥 ROG Admin Panel</h2>
+    <!-- Site Settings -->
+    <div class="card">
+        <h3><i class="fa-solid fa-globe"></i> Site Settings</h3>
+        <select id="siteStatus">
+            <option value="active">✅ Active</option>
+            <option value="maintenance">🔧 Maintenance</option>
+            <option value="blocked">⛔ Blocked</option>
+        </select>
+        <input id="brandName" placeholder="Brand Name">
+        <input id="brandSubtitle" placeholder="Brand Subtitle">
+        <textarea id="noticeMessage" placeholder="Notice Message"></textarea>
+        <button onclick="saveSettings()"><i class="fa-solid fa-save"></i> Save Settings</button>
+    </div>
 
-<div class="card">
-<h3>Site Settings</h3>
-<select id="siteStatus">
-    <option value="active">Active</option>
-    <option value="maintenance">Maintenance</option>
-    <option value="blocked">Blocked</option>
-</select>
-<input id="brandName" placeholder="Brand Name">
-<input id="brandSubtitle" placeholder="Brand Subtitle">
-<textarea id="noticeMessage" placeholder="Notice Message"></textarea>
-<button onclick="saveSettings()">Save Settings</button>
-</div>
+    <!-- Appearance (now with Theme Picker) -->
+    <div class="card">
+        <h3><i class="fa-solid fa-palette"></i> Appearance</h3>
 
-<div class="card">
-<h3>Appearance</h3>
-<input id="primaryColor" placeholder="#38bdf8">
-<input id="borderRadius" placeholder="1.2rem">
-<input id="glassIntensity" placeholder="20px">
-<button onclick="saveAppearance()">Save Appearance</button>
-</div>
+        <!-- Preset color dots -->
+        <div class="theme-picker">
+            <div class="color-dot" style="background: #38bdf8;" onclick="setTheme('#38bdf8', '#818cf8')" title="Sky Blue"></div>
+            <div class="color-dot" style="background: #fbbf24;" onclick="setTheme('#fbbf24', '#f59e0b')" title="Yellow"></div>
+            <div class="color-dot" style="background: #34d399;" onclick="setTheme('#34d399', '#10b981')" title="Green"></div>
+            <div class="color-dot" style="background: #f87171;" onclick="setTheme('#f87171', '#ef4444')" title="Red"></div>
+            <div class="color-dot" style="background: #c084fc;" onclick="setTheme('#c084fc', '#a78bfa')" title="Purple"></div>
+            <div class="color-dot" style="background: #f472b6;" onclick="setTheme('#f472b6', '#ec4899')" title="Pink"></div>
+        </div>
 
-<div class="card">
-<h3>Add Article</h3>
-<input id="articleTitle" placeholder="Title">
-<textarea id="articleBody" placeholder="Body"></textarea>
-<button onclick="addArticle()">Publish</button>
-</div>
+        <!-- Custom color picker -->
+        <div class="custom-color-row">
+            <input type="color" id="customPrimary" value="#38bdf8">
+            <button class="small-btn" onclick="applyCustomColor()">Apply Custom</button>
+        </div>
 
-<div class="card">
-<h3>Ads Control</h3>
-<select id="adsEnabled">
-    <option value="true">Enable Ads</option>
-    <option value="false">Disable Ads</option>
-</select>
-<textarea id="adHeader" placeholder="Header Ad Code"></textarea>
-<button onclick="saveAds()">Save Ads</button>
-</div>
+        <!-- Additional appearance fields (unchanged) -->
+        <input id="borderRadius" placeholder="Border Radius (e.g., 1.2rem)" value="1.2rem">
+        <input id="glassIntensity" placeholder="Glass Intensity (e.g., 20px)" value="20px">
+        <button onclick="saveAppearance()"><i class="fa-solid fa-save"></i> Save Appearance</button>
+    </div>
 
-<script>
-const firebaseConfig = {
-    apiKey: "AIzaSyAR_kPmsLV2-EY6N4-JvqpzNLELy_tuQ80",
-    databaseURL: "https://test-e0321-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "test-e0321"
-};
+    <!-- Add Article -->
+    <div class="card">
+        <h3><i class="fa-solid fa-newspaper"></i> Add Article</h3>
+        <input id="articleTitle" placeholder="Title">
+        <textarea id="articleBody" placeholder="Body"></textarea>
+        <button onclick="addArticle()"><i class="fa-solid fa-plus"></i> Publish</button>
+    </div>
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    <!-- Manage Articles (with Delete) -->
+    <div class="card">
+        <h3><i class="fa-solid fa-list"></i> Manage Articles</h3>
+        <div id="articlesList">Loading articles...</div>
+    </div>
 
-function saveSettings(){
-    db.ref("settings").set({
-        siteStatus: siteStatus.value,
-        brandName: brandName.value,
-        brandSubtitle: brandSubtitle.value,
-        noticeMessage: noticeMessage.value
-    });
-    alert("Settings Updated");
-}
+    <!-- Ads Control (single ad, original style) -->
+    <div class="card">
+        <h3><i class="fa-solid fa-ad"></i> Ads Control</h3>
+        <select id="adsEnabled">
+            <option value="true">Enable Ads</option>
+            <option value="false">Disable Ads</option>
+        </select>
+        <textarea id="adHeader" placeholder="Header Ad Code (HTML/JavaScript)"></textarea>
+        <button onclick="saveAds()"><i class="fa-solid fa-save"></i> Save Ads</button>
+    </div>
 
-function saveAppearance(){
-    db.ref("appearance").set({
-        primaryColor: primaryColor.value,
-        borderRadius: borderRadius.value,
-        glassIntensity: glassIntensity.value
-    });
-    alert("Appearance Updated");
-}
+    <!-- Toast -->
+    <div id="toast">Copied!</div>
 
-function addArticle(){
-    db.ref("articles").push({
-        title: articleTitle.value,
-        body: articleBody.value,
-        badge: "UPDATE",
-        timestamp: Date.now()
-    });
-    alert("Article Published");
-}
+    <script>
+        // ==================== Firebase Config (unchanged) ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAR_kPmsLV2-EY6N4-JvqpzNLELy_tuQ80",
+            databaseURL: "https://test-e0321-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "test-e0321"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-function saveAds(){
-    db.ref("ads").set({
-        enabled: adsEnabled.value === "true",
-        header: adHeader.value
-    });
-    alert("Ads Updated");
-}
-</script>
+        // ==================== Theme Functions (from the big code) ====================
+        function setTheme(primary, secondary) {
+            document.documentElement.style.setProperty('--primary', primary);
+            document.documentElement.style.setProperty('--secondary', secondary || primary);
+            document.documentElement.style.setProperty('--gradient-brand', `linear-gradient(to right, #fff, ${primary})`);
+            // Save to Firebase as part of appearance
+            saveAppearance(); // will also store primary/secondary
+        }
 
+        function applyCustomColor() {
+            const color = document.getElementById('customPrimary').value;
+            setTheme(color, color);
+        }
+
+        // ================== Apply theme from Firebase on load ==================
+        function applyAppearance(settings) {
+            if (!settings) return;
+            const root = document.documentElement;
+            if (settings.primaryColor) {
+                root.style.setProperty('--primary', settings.primaryColor);
+                root.style.setProperty('--gradient-brand', `linear-gradient(to right, #fff, ${settings.primaryColor})`);
+            }
+            if (settings.secondaryColor) {
+                root.style.setProperty('--secondary', settings.secondaryColor);
+            }
+            if (settings.borderRadius) {
+                root.style.setProperty('--border-radius', settings.borderRadius);
+            }
+            if (settings.glassIntensity) {
+                root.style.setProperty('--glass-intensity', settings.glassIntensity);
+            }
+        }
+
+        // Listen for appearance changes
+        db.ref('appearance').on('value', (snap) => {
+            applyAppearance(snap.val());
+        });
+
+        // ==================== SAVE FUNCTIONS (updated to include colors) ====================
+        function saveSettings() {
+            db.ref("settings").set({
+                siteStatus: siteStatus.value,
+                brandName: brandName.value,
+                brandSubtitle: brandSubtitle.value,
+                noticeMessage: noticeMessage.value
+            });
+            showToast("Settings Updated");
+        }
+
+        function saveAppearance() {
+            // Get current primary color from computed style
+            const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#38bdf8';
+            const secondary = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim() || '#818cf8';
+            const appearance = {
+                primaryColor: primary,
+                secondaryColor: secondary,
+                borderRadius: borderRadius.value,
+                glassIntensity: glassIntensity.value
+            };
+            db.ref("appearance").set(appearance);
+            showToast("Appearance Updated");
+        }
+
+        function addArticle() {
+            db.ref("articles").push({
+                title: articleTitle.value,
+                body: articleBody.value,
+                badge: "UPDATE",
+                timestamp: Date.now()
+            });
+            showToast("Article Published");
+            articleTitle.value = '';
+            articleBody.value = '';
+        }
+
+        // ================== DELETE ARTICLE ==================
+        function deleteArticle(articleId) {
+            if (confirm('Delete this article?')) {
+                db.ref('articles/' + articleId).remove()
+                    .then(() => showToast('Article deleted'))
+                    .catch(err => alert('Error: ' + err));
+            }
+        }
+
+        // Load and display articles with delete buttons
+        function loadArticles() {
+            const container = document.getElementById('articlesList');
+            db.ref('articles').orderByChild('timestamp').on('value', (snap) => {
+                const articles = snap.val();
+                if (!articles) {
+                    container.innerHTML = '<p style="color: var(--text-dim);">No articles yet.</p>';
+                    return;
+                }
+                let html = '';
+                const articlesArray = Object.entries(articles).map(([id, data]) => ({ id, ...data }));
+                articlesArray.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                articlesArray.forEach(article => {
+                    html += `
+                        <div class="article-item">
+                            <div class="article-header">
+                                <strong>${escapeHTML(article.title || 'Untitled')}</strong>
+                                <span class="badge">${escapeHTML(article.badge || 'UPDATE')}</span>
+                            </div>
+                            <div style="font-size:0.9em; opacity:0.8;">${escapeHTML(article.body || '').substring(0,100)}${article.body?.length > 100 ? '…' : ''}</div>
+                            <button class="danger small-btn" onclick="deleteArticle('${article.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                return m;
+            });
+        }
+
+        // ================== SIMPLE ADS (original style) ==================
+        function loadAds() {
+            db.ref('ads').on('value', (snap) => {
+                const adsData = snap.val();
+                if (adsData) {
+                    document.getElementById('adsEnabled').value = adsData.enabled ? 'true' : 'false';
+                    document.getElementById('adHeader').value = adsData.header || '';
+                } else {
+                    document.getElementById('adsEnabled').value = 'true';
+                    document.getElementById('adHeader').value = '';
+                }
+            });
+        }
+
+        function saveAds() {
+            db.ref("ads").set({
+                enabled: document.getElementById('adsEnabled').value === 'true',
+                header: document.getElementById('adHeader').value
+            });
+            showToast("Ads Updated");
+        }
+
+        // ================== TOAST ==================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // ================== INIT ==================
+        window.onload = function() {
+            loadArticles();
+            loadAds();
+
+            db.ref('settings').once('value').then(snap => {
+                const s = snap.val();
+                if (s) {
+                    siteStatus.value = s.siteStatus || 'active';
+                    brandName.value = s.brandName || '';
+                    brandSubtitle.value = s.brandSubtitle || '';
+                    noticeMessage.value = s.noticeMessage || '';
+                }
+            });
+
+            db.ref('appearance').once('value').then(snap => {
+                const a = snap.val();
+                if (a) {
+                    // Set input fields
+                    primaryColor.value = a.primaryColor || '#38bdf8';
+                    borderRadius.value = a.borderRadius || '1.2rem';
+                    glassIntensity.value = a.glassIntensity || '20px';
+                    // Also apply theme (though listener already does)
+                    applyAppearance(a);
+                }
+            });
+        };
+    </script>
 </body>
 </html>
